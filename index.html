@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raza Book Store</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f3f7f4;color:#222}
+header{background:#116b43;color:white;padding:20px;text-align:center}
+header h1{margin:0}
+nav{background:#084b30;padding:12px;text-align:center}
+nav a{color:white;text-decoration:none;margin:10px}
+.container{padding:16px;max-width:1000px;margin:auto}
+.hero{background:#d8f4e2;padding:25px;text-align:center;border-radius:15px}
+input,textarea,select{width:100%;padding:12px;margin:7px 0;border:1px solid #ccc;border-radius:7px}
+button{background:#116b43;color:white;border:0;padding:12px 16px;border-radius:7px;cursor:pointer}
+.books{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-top:15px}
+.book{background:white;padding:12px;border-radius:12px;box-shadow:0 2px 8px #ddd}
+.cover{font-size:55px;text-align:center;background:#e5f5e9;padding:18px}
+.price{font-weight:bold;color:#116b43}
+section{margin:22px 0}
+footer{background:#084b30;color:white;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>📚 Raza Book Store</h1>
+<p>Har kitab, aapke liye</p>
+</header>
+
+<nav>
+<a href="#home">Home</a>
+<a href="#books">Books</a>
+<a href="#cart">Cart</a>
+<a href="#admin">Admin</a>
+</nav>
+
+<div class="container">
+
+<section id="home" class="hero">
+<h2>Welcome to Raza Book Store</h2>
+<p>Apni pasand ki kitabein yahan dekhein aur order karein.</p>
+<input id="search" placeholder="Kitab search karein..." oninput="showBooks()">
+</section>
+
+<section id="books">
+<h2>📚 Hamari Kitabein</h2>
+<div id="bookList" class="books"></div>
+</section>
+
+<section id="cart">
+<h2>🛒 Aapka Cart</h2>
+<div id="cartList">Cart khaali hai.</div>
+<h3>Total: ₹<span id="total">0</span></h3>
+<button onclick="checkout()">Order Karein</button>
+</section>
+
+<section id="checkout" style="display:none">
+<h2>Order Details</h2>
+<input id="customer" placeholder="Aapka naam">
+<input id="mobile" placeholder="Mobile number">
+<textarea id="address" placeholder="Poora address"></textarea>
+<button onclick="sendOrder()">WhatsApp par Order Bhejein</button>
+</section>
+
+<section id="admin">
+<h2>🔐 Admin Panel</h2>
+<p>Demo admin login</p>
+<input type="password" id="password" placeholder="Admin password">
+<button onclick="login()">Login</button>
+
+<div id="adminArea" style="display:none">
+<h3>Nayi kitab add karein</h3>
+<input id="bookName" placeholder="Kitab ka naam">
+<input id="bookPrice" type="number" placeholder="Price">
+<input id="bookEmoji" placeholder="Kitab ka emoji, jaise 📘">
+<button onclick="addBook()">Kitab Add Karein</button>
+<hr>
+<h3>WhatsApp Number</h3>
+<p>Country code ke saath number dalein, jaise 919876543210</p>
+<input id="wa" placeholder="WhatsApp number">
+<button onclick="saveWA()">Number Save Karein</button>
+</div>
+</section>
+
+</div>
+
+<footer>
+<p>© Raza Book Store</p>
+<p>Kitabon ki duniya mein aapka swagat hai.</p>
+</footer>
+
+<script>
+let books=[
+ {name:"School Textbook",price:180,emoji:"📘"},
+ {name:"English Grammar",price:199,emoji:"📗"},
+ {name:"Hindi Novel",price:220,emoji:"📕"},
+ {name:"Exam Guide",price:299,emoji:"📙"},
+ {name:"Notebook",price:80,emoji:"📒"}
+];
+let cart=[];
+let waNumber="";
+
+function showBooks(){
+ let q=document.getElementById("search").value.toLowerCase();
+ let list=document.getElementById("bookList");
+ list.innerHTML="";
+ books.filter(b=>b.name.toLowerCase().includes(q)).forEach((b,i)=>{
+  list.innerHTML+=`
+  <div class="book">
+   <div class="cover">${b.emoji}</div>
+   <h3>${b.name}</h3>
+   <p class="price">₹${b.price}</p>
+   <button onclick="addCart(${books.indexOf(b)})">Cart mein daalein</button>
+  </div>`;
+ });
+}
+
+function addCart(i){
+ cart.push(books[i]);
+ renderCart();
+}
+
+function renderCart(){
+ let list=document.getElementById("cartList");
+ let total=0;
+ if(!cart.length){list.innerHTML="Cart khaali hai."}
+ else{
+  list.innerHTML=cart.map(b=>`<p>${b.name} — ₹${b.price}</p>`).join("");
+ }
+ cart.forEach(b=>total+=b.price);
+ document.getElementById("total").textContent=total;
+}
+
+function checkout(){
+ if(!cart.length){alert("Pehle kitab cart mein daalein.");return}
+ document.getElementById("checkout").style.display="block";
+ document.getElementById("checkout").scrollIntoView();
+}
+
+function sendOrder(){
+ let name=document.getElementById("customer").value.trim();
+ let mobile=document.getElementById("mobile").value.trim();
+ let address=document.getElementById("address").value.trim();
+ if(!name||!mobile||!address){alert("Saari details bharein.");return}
+ if(!waNumber){alert("Admin panel mein WhatsApp number set karein.");return}
+ let items=cart.map(b=>b.name+" ₹"+b.price).join(", ");
+ let total=cart.reduce((s,b)=>s+b.price,0);
+ let msg="Raza Book Store Order\nNaam: "+name+
+ "\nMobile: "+mobile+"\nAddress: "+address+
+ "\nBooks: "+items+"\nTotal: ₹"+total;
+ window.open("https://wa.me/"+waNumber+
+ "?text="+encodeURIComponent(msg),"_blank");
+}
+
+function login(){
+ if(document.getElementById("password").value==="raza123"){
+  document.getElementById("adminArea").style.display="block";
+  alert("Demo login ho gaya.");
+ }else{alert("Password galat hai.")}
+}
+
+function addBook(){
+ let name=document.getElementById("bookName").value.trim();
+ let price=Number(document.getElementById("bookPrice").value);
+ let emoji=document.getElementById("bookEmoji").value||"📚";
+ if(!name||price<=0){alert("Naam aur sahi price daalein.");return}
+ books.push({name,price,emoji});
+ showBooks();
+ alert("Kitab add ho gayi.");
+}
+
+function saveWA(){
+ let n=document.getElementById("wa").value.replace(/\D/g,"");
+ if(n.length<10){alert("Sahi WhatsApp number daalein.");return}
+ waNumber=n;
+ alert("WhatsApp number is session ke liye set ho gaya.");
+}
+
+showBooks();
+</script>
+</body>
+</html>
